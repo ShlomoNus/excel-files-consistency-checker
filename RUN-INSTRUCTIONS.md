@@ -4,7 +4,7 @@
 The app compares the lists and generates a report in Markdown format.
 
 ## Requirements
-- Node.js installed on your machine
+- Node.js installed on your machine (download: https://nodejs.org/en/download)
 - Run commands from the project root folder
 
 ## File placement and naming
