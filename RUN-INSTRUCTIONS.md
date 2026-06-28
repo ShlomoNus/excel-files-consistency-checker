@@ -32,6 +32,10 @@ The report is saved here:
 
 output/compare-report.md
 
+For clean reading/export, you can copy the report content into:
+
+https://www.markdowntopdf.com/
+
 ## Direct script run
 You can also run the comparison script directly:
 
