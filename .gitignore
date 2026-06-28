@@ -150,4 +150,4 @@ files/**/*
 !files/**/.gitkeep
 
 # Ignore generated output reports
-output/
+output/**/*
