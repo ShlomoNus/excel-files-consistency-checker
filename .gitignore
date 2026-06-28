@@ -148,3 +148,6 @@ files/**/*
 !files/**/
 !files/.gitkeep
 !files/**/.gitkeep
+
+# Ignore generated output reports
+output/

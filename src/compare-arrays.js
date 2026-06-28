@@ -131,6 +131,7 @@ function listInvalidFormats(dirPath, allowedExts) {
 
   for (const entry of entries) {
     if (!entry.isFile()) continue;
+    if (entry.name === '.gitkeep') continue;
 
     const ext = getFileExtension(entry.name);
     if (!allowedExts.includes(ext)) {
@@ -141,9 +142,19 @@ function listInvalidFormats(dirPath, allowedExts) {
   return invalid.sort((a, b) => a.localeCompare(b));
 }
 
+function clearOutputDirectory(dirPath) {
+  fs.mkdirSync(dirPath, { recursive: true });
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name);
+    fs.rmSync(fullPath, { recursive: true, force: true });
+  }
+}
+
 function main() {
   const NEAR_MATCH_THRESHOLD = 0.65;
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  clearOutputDirectory(OUTPUT_DIR);
   const sourceText = fs.readFileSync(sourceFile, 'utf8');
   const excel = parseArrayFromSource(sourceText, 'excel');
   const files = parseArrayFromSource(sourceText, 'files');
@@ -196,7 +207,7 @@ function main() {
     );
 
   const invalidInPdfs = listInvalidFormats(PDFS_DIR, ['.pdf']);
-  const invalidInMedia = listInvalidFormats(MEDIA_DIR, ['.mp3', '.mp4']);
+  const invalidInMedia = listInvalidFormats(MEDIA_DIR, ['.mp3', '.mp4', '.wmv']);
 
   const reportLines = [];
   reportLines.push('# Array Comparison Report');
@@ -217,7 +228,7 @@ function main() {
   reportLines.push(...toLines('Missing in excel (exists in files only)', missingInExcel));
   reportLines.push(...toLines('Not exact (possible near matches)', possibleNearMatches));
   reportLines.push(...toLines('Invalid formats in files/pdfs (allowed: .pdf)', invalidInPdfs));
-  reportLines.push(...toLines('Invalid formats in files/media (allowed: .mp3, .mp4)', invalidInMedia));
+  reportLines.push(...toLines('Invalid formats in files/media (allowed: .mp3, .mp4, .wmv)', invalidInMedia));
 
   fs.writeFileSync(reportFile, reportLines.join('\n'), 'utf8');
 

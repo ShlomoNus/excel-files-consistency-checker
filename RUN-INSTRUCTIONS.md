@@ -13,11 +13,11 @@ The app compares the lists and generates a report in Markdown format.
 
     files/pdfs
 
-- Media files must be in (allowed formats: .mp3 and .mp4 only):
+- Media files must be in (allowed formats: .mp3, .mp4, and .wmv):
 
     files/media
 
-- Any other format (for example .pps or .wmv) is reported as invalid format in the generated report.
+- Any other format (for example .pps) is reported as invalid format in the generated report.
 
 - If a file is in the wrong folder or has a wrong name, the report will show missing items or mismatches.
 
