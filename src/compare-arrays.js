@@ -142,6 +142,25 @@ function listInvalidFormats(dirPath, allowedExts) {
   return invalid.sort((a, b) => a.localeCompare(b));
 }
 
+function collectFileNamesFromDisk() {
+  const names = new Set();
+  const sourceDirs = [PDFS_DIR];
+
+  for (const dirPath of sourceDirs) {
+    if (!fs.existsSync(dirPath)) continue;
+
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (entry.name === '.gitkeep') continue;
+
+      names.add(path.parse(entry.name).name);
+    }
+  }
+
+  return Array.from(names).sort((a, b) => a.localeCompare(b));
+}
+
 function clearOutputDirectory(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -157,7 +176,7 @@ function main() {
   clearOutputDirectory(OUTPUT_DIR);
   const sourceText = fs.readFileSync(sourceFile, 'utf8');
   const excel = parseArrayFromSource(sourceText, 'excel');
-  const files = parseArrayFromSource(sourceText, 'files');
+  const files = collectFileNamesFromDisk();
 
   const excelSet = new Set(excel);
   const filesSet = new Set(files);
@@ -213,6 +232,7 @@ function main() {
   reportLines.push('# Array Comparison Report');
   reportLines.push('');
   reportLines.push(`- Source: ${path.basename(sourceFile)}`);
+  reportLines.push('- Files source: filesystem scan (files/pdfs)');
   reportLines.push(`- Excel count: ${excel.length}`);
   reportLines.push(`- Files count: ${files.length}`);
   reportLines.push(`- Exact matching: ${exactMatches.length}`);

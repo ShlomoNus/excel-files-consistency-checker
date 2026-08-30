@@ -25,7 +25,7 @@ The app compares the lists and generates a report in Markdown format.
 1. Open a terminal in the project root folder.
 2. Run:
 
-    node src/run.js
+    node src/compare-arrays.js
 
 ## Output
 The report is saved here:
@@ -36,7 +36,7 @@ For clean reading/export, you can copy the report content into:
 
 https://www.markdowntopdf.com/
 
-## Direct script run
-You can also run the comparison script directly:
+## Note
+The project uses a single executable script:
 
     node src/compare-arrays.js
