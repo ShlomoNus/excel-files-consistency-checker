@@ -150,4 +150,6 @@ files/**/*
 !files/**/.gitkeep
 
 # Ignore generated output reports
-output/**/*
+output/compare-report.md
+output/pdfs/**/*
+!output/pdfs/.gitkeep

@@ -7,6 +7,7 @@ const WORK_DIR = __dirname;
 const sourceFile = path.join(WORK_DIR, 'all-names-array.js');
 const OUTPUT_DIR = path.join(WORK_DIR, '..', 'output');
 const reportFile = path.join(OUTPUT_DIR, 'compare-report.md');
+const OUTPUT_PDFS_DIR = path.join(OUTPUT_DIR, 'pdfs');
 const FILES_DIR = path.join(WORK_DIR, '..', 'files');
 const PDFS_DIR = path.join(FILES_DIR, 'pdfs');
 const MEDIA_DIR = path.join(FILES_DIR, 'media');
@@ -144,7 +145,7 @@ function listInvalidFormats(dirPath, allowedExts) {
 
 function collectFileNamesFromDisk() {
   const names = new Set();
-  const sourceDirs = [PDFS_DIR];
+  const sourceDirs = [PDFS_DIR, OUTPUT_PDFS_DIR];
 
   for (const dirPath of sourceDirs) {
     if (!fs.existsSync(dirPath)) continue;
@@ -166,9 +167,29 @@ function clearOutputDirectory(dirPath) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
   for (const entry of entries) {
+    if (entry.name === path.basename(OUTPUT_PDFS_DIR)) continue;
+
     const fullPath = path.join(dirPath, entry.name);
     fs.rmSync(fullPath, { recursive: true, force: true });
   }
+}
+
+function moveExactPdfMatches(exactMatches) {
+  fs.mkdirSync(OUTPUT_PDFS_DIR, { recursive: true });
+  let movedCount = 0;
+
+  for (const name of exactMatches) {
+    const fileName = `${name}.pdf`;
+    const sourcePath = path.join(PDFS_DIR, fileName);
+    const destinationPath = path.join(OUTPUT_PDFS_DIR, fileName);
+
+    if (!fs.existsSync(sourcePath) || fs.existsSync(destinationPath)) continue;
+
+    fs.renameSync(sourcePath, destinationPath);
+    movedCount += 1;
+  }
+
+  return movedCount;
 }
 
 function main() {
@@ -251,8 +272,10 @@ function main() {
   reportLines.push(...toLines('Invalid formats in files/media (allowed: .mp3, .mp4, .wmv)', invalidInMedia));
 
   fs.writeFileSync(reportFile, reportLines.join('\n'), 'utf8');
+  const movedCount = moveExactPdfMatches(exactMatches);
 
   console.log(`Report written: ${reportFile}`);
+  console.log(`Matching PDFs moved to ${OUTPUT_PDFS_DIR}: ${movedCount}`);
   console.log(`Exact matching: ${exactMatches.length}`);
   console.log(`Missing in files: ${missingInFiles.length}`);
   console.log(`Missing in excel: ${missingInExcel.length}`);
