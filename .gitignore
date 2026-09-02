@@ -151,5 +151,6 @@ files/**/*
 
 # Ignore generated output reports
 output/compare-report.md
+output/matching-pdf-array.js
 output/pdfs/**/*
 !output/pdfs/.gitkeep

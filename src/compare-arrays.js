@@ -7,6 +7,7 @@ const WORK_DIR = __dirname;
 const sourceFile = path.join(WORK_DIR, 'all-names-array.js');
 const OUTPUT_DIR = path.join(WORK_DIR, '..', 'output');
 const reportFile = path.join(OUTPUT_DIR, 'compare-report.md');
+const matchingArrayFile = path.join(OUTPUT_DIR, 'matching-pdf-array.js');
 const OUTPUT_PDFS_DIR = path.join(OUTPUT_DIR, 'pdfs');
 const FILES_DIR = path.join(WORK_DIR, '..', 'files');
 const PDFS_DIR = path.join(FILES_DIR, 'pdfs');
@@ -192,6 +193,13 @@ function moveExactPdfMatches(exactMatches) {
   return movedCount;
 }
 
+function writeMatchingPdfArray(exactMatches) {
+  const fileNames = exactMatches.map((name) => `${name}.pdf`);
+  const content = `const matchingPdfFiles = ${JSON.stringify(fileNames, null, 2)};\n\nmodule.exports = matchingPdfFiles;\n`;
+
+  fs.writeFileSync(matchingArrayFile, content, 'utf8');
+}
+
 function main() {
   const NEAR_MATCH_THRESHOLD = 0.65;
   clearOutputDirectory(OUTPUT_DIR);
@@ -272,9 +280,11 @@ function main() {
   reportLines.push(...toLines('Invalid formats in files/media (allowed: .mp3, .mp4, .wmv)', invalidInMedia));
 
   fs.writeFileSync(reportFile, reportLines.join('\n'), 'utf8');
+  writeMatchingPdfArray(exactMatches);
   const movedCount = moveExactPdfMatches(exactMatches);
 
   console.log(`Report written: ${reportFile}`);
+  console.log(`Matching PDF array written: ${matchingArrayFile}`);
   console.log(`Matching PDFs moved to ${OUTPUT_PDFS_DIR}: ${movedCount}`);
   console.log(`Exact matching: ${exactMatches.length}`);
   console.log(`Missing in files: ${missingInFiles.length}`);
