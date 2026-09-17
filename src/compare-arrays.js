@@ -13,18 +13,24 @@ const PDFS_DIR = path.join(FILES_DIR, 'pdfs');
 const MEDIA_DIR = path.join(FILES_DIR, 'media');
 
 function parseArrayFromSource(sourceText, arrayName) {
-  const assignRegex = new RegExp(`const\\s+${arrayName}\\s*=\\s*\\[`, 'm');
+  const assignRegex = new RegExp(`const\\s+${arrayName}\\s*=\\s*`, 'm');
   const assignMatch = assignRegex.exec(sourceText);
 
   if (!assignMatch) {
     throw new Error(`Could not find array: ${arrayName}`);
   }
 
-  const startIndex = assignMatch.index + assignMatch[0].length - 1;
+  const startIndex = assignMatch.index + assignMatch[0].length;
+  const startBracketIndex = sourceText.indexOf('[', startIndex);
+
+  if (startBracketIndex === -1) {
+    throw new Error(`Could not find opening bracket for: ${arrayName}`);
+  }
+
   let depth = 0;
   let endIndex = -1;
 
-  for (let i = startIndex; i < sourceText.length; i += 1) {
+  for (let i = startBracketIndex; i < sourceText.length; i += 1) {
     const ch = sourceText[i];
     if (ch === '[') depth += 1;
     if (ch === ']') {
@@ -40,8 +46,17 @@ function parseArrayFromSource(sourceText, arrayName) {
     throw new Error(`Could not parse array boundaries for: ${arrayName}`);
   }
 
-  const content = sourceText.slice(startIndex, endIndex + 1);
-  return JSON.parse(content);
+  const content = sourceText.slice(startBracketIndex, endIndex + 1).replace(/,\s*([}\]])/g, '$1');
+
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    try {
+      return Function(`"use strict"; return (${content});`)();
+    } catch (nestedError) {
+      throw new Error(`Failed to parse array: ${arrayName} (${String(nestedError.message || nestedError)})`);
+    }
+  }
 }
 
 function normalize(text) {
