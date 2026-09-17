@@ -8,7 +8,6 @@ const sourceFile = path.join(WORK_DIR, 'all-names-array.js');
 const OUTPUT_DIR = path.join(WORK_DIR, '..', 'output');
 const reportFile = path.join(OUTPUT_DIR, 'compare-report.md');
 const matchingArrayFile = path.join(OUTPUT_DIR, 'matching-pdf-array.js');
-const OUTPUT_PDFS_DIR = path.join(OUTPUT_DIR, 'pdfs');
 const FILES_DIR = path.join(WORK_DIR, '..', 'files');
 const PDFS_DIR = path.join(FILES_DIR, 'pdfs');
 const MEDIA_DIR = path.join(FILES_DIR, 'media');
@@ -146,7 +145,7 @@ function listInvalidFormats(dirPath, allowedExts) {
 
 function collectFileNamesFromDisk() {
   const names = new Set();
-  const sourceDirs = [PDFS_DIR, OUTPUT_PDFS_DIR];
+  const sourceDirs = [PDFS_DIR, MEDIA_DIR];
 
   for (const dirPath of sourceDirs) {
     if (!fs.existsSync(dirPath)) continue;
@@ -168,33 +167,15 @@ function clearOutputDirectory(dirPath) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
   for (const entry of entries) {
-    if (entry.name === path.basename(OUTPUT_PDFS_DIR)) continue;
-
     const fullPath = path.join(dirPath, entry.name);
     fs.rmSync(fullPath, { recursive: true, force: true });
   }
 }
 
-function moveExactPdfMatches(exactMatches) {
-  fs.mkdirSync(OUTPUT_PDFS_DIR, { recursive: true });
-  let movedCount = 0;
-
-  for (const name of exactMatches) {
-    const fileName = `${name}.pdf`;
-    const sourcePath = path.join(PDFS_DIR, fileName);
-    const destinationPath = path.join(OUTPUT_PDFS_DIR, fileName);
-
-    if (!fs.existsSync(sourcePath) || fs.existsSync(destinationPath)) continue;
-
-    fs.renameSync(sourcePath, destinationPath);
-    movedCount += 1;
-  }
-
-  return movedCount;
-}
-
 function writeMatchingPdfArray(exactMatches) {
-  const fileNames = exactMatches.map((name) => `${name}.pdf`);
+  const fileNames = exactMatches
+    .filter((name) => fs.existsSync(path.join(PDFS_DIR, `${name}.pdf`)))
+    .map((name) => `${name}.pdf`);
   const content = `const matchingPdfFiles = ${JSON.stringify(fileNames, null, 2)};\n\nmodule.exports = matchingPdfFiles;\n`;
 
   fs.writeFileSync(matchingArrayFile, content, 'utf8');
@@ -261,7 +242,7 @@ function main() {
   reportLines.push('# Array Comparison Report');
   reportLines.push('');
   reportLines.push(`- Source: ${path.basename(sourceFile)}`);
-  reportLines.push('- Files source: filesystem scan (files/pdfs)');
+  reportLines.push('- Files source: filesystem scan (files/pdfs and files/media)');
   reportLines.push(`- Excel count: ${excel.length}`);
   reportLines.push(`- Files count: ${files.length}`);
   reportLines.push(`- Exact matching: ${exactMatches.length}`);
@@ -281,11 +262,9 @@ function main() {
 
   fs.writeFileSync(reportFile, reportLines.join('\n'), 'utf8');
   writeMatchingPdfArray(exactMatches);
-  const movedCount = moveExactPdfMatches(exactMatches);
 
   console.log(`Report written: ${reportFile}`);
   console.log(`Matching PDF array written: ${matchingArrayFile}`);
-  console.log(`Matching PDFs moved to ${OUTPUT_PDFS_DIR}: ${movedCount}`);
   console.log(`Exact matching: ${exactMatches.length}`);
   console.log(`Missing in files: ${missingInFiles.length}`);
   console.log(`Missing in excel: ${missingInExcel.length}`);

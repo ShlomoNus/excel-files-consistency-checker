@@ -32,6 +32,8 @@ The report is saved here:
 
 output/compare-report.md
 
+PDF, audio, and video filenames are all compared with the names in the Excel list. The files stay in their input folders; the script does not move them.
+
 For clean reading/export, you can copy the report content into:
 
 https://www.markdowntopdf.com/
